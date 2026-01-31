@@ -16,4 +16,67 @@ export const authService = {
       throw new Error(errorMessage);
     }
   },
+
+  // Menghapus data sesi dari storage
+  async logout(): Promise<void> {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+  },
+
+  // Mengambil data user yang sedang login dari storage
+  async getCurrentUser(): Promise<LoginResponse["user"]> {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = localStorage.getItem("user");
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return JSON.parse(user);
+  },
+};
+
+/**
+ * tokenService: Khusus mengelola penyimpanan access_token.
+ */
+export const tokenService = {
+  // Mengambil token untuk disertakan dalam Header API (Bearer Token)
+  getToken(): string | null {
+    return localStorage.getItem("access_token");
+  },
+  // Menyimpan token baru setelah login berhasil
+  setToken(token: string): void {
+    localStorage.setItem("access_token", token);
+  },
+  // Menghapus token saat logout
+  removeToken(): void {
+    localStorage.removeItem("access_token");
+  },
+  // Mengecek apakah user sudah login atau belum berdasarkan keberadaan token
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    return Boolean(token);
+  },
+};
+
+/**
+ * userService: Khusus mengelola penyimpanan profil User.
+ */
+export const userService = {
+  // Mengambil data profil user dari storage
+  getUser(): LoginResponse["user"] | null {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  },
+  // Menyimpan data profil user (biasanya disimpan bersamaan dengan token)
+  setUser(user: LoginResponse["user"]): void {
+    localStorage.setItem("user", JSON.stringify(user)); // Objek harus di-string agar bisa disimpan
+  },
+  // Menghapus data user saat logout
+  removeUser(): void {
+    localStorage.removeItem("user");
+  },
 };
