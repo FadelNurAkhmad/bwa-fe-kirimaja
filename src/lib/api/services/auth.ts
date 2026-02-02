@@ -1,6 +1,6 @@
 import { handleAxiosError } from "@/lib/utils/error-handler";
 import { apiClient } from "../axios";
-import type { LoginRequest, LoginResponse } from "../types";
+import type { LoginRequest, LoginResponse, RegisterRequest } from "../types";
 import type { AxiosErrorType } from "@/lib/utils/api-error-types";
 
 export const authService = {
@@ -36,6 +36,25 @@ export const authService = {
     }
 
     return JSON.parse(user);
+  },
+
+  async register(request: RegisterRequest): Promise<LoginResponse> {
+    try {
+      // Mengirim permintaan POST ke endpoint /auth/register
+      const response = await apiClient.post<LoginResponse>(
+        "/auth/register",
+        request,
+      );
+
+      // Mengembalikan data hasil respon dari server
+      return response.data;
+    } catch (error) {
+      // Menangani error axios menggunakan helper fungsi kustom
+      const errorMessage = handleAxiosError(error as AxiosErrorType);
+
+      // Melemparkan kembali error dalam bentuk pesan string
+      throw new Error(errorMessage);
+    }
   },
 };
 

@@ -6,7 +6,7 @@ import {
 } from "@/lib/api/services/auth";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import type { LoginRequest } from "@/lib/api";
+import type { LoginRequest, RegisterRequest } from "@/lib/api";
 
 /**
  * useAuth: Custom hook untuk mengelola seluruh status login/logout aplikasi.
@@ -67,6 +67,37 @@ export const useAuth = () => {
     },
   });
 
+  const registerMutation = useMutation({
+    mutationFn: authService.register,
+
+    onSuccess: (data) => {
+      // Validasi apakah respon memiliki token dan data user
+      if (!data?.access_token || !data?.user) {
+        toast.error("Response tidak valid dari server");
+        return;
+      }
+
+      // Menyimpan token dan data user ke storage/state
+      tokenService.setToken(data.access_token);
+      userService.setUser(data.user);
+
+      // Update cache manual pada React Query
+      queryClient.setQueryData(["auth", "user"], data.user);
+
+      toast.success("Registrasi berhasil! Selamat datang!");
+
+      // Pindah ke halaman dashboard
+      navigate("/dashboard");
+    },
+
+    onError: (error: Error) => {
+      // Menampilkan pesan error jika registrasi gagal
+      const errorMessage =
+        error.message || "Registrasi gagal. Silakan coba lagi.";
+      toast.error(errorMessage);
+    },
+  });
+
   /**
    * 3. LOGOUT MUTATION
    * Fungsi: Menghapus seluruh data identitas user dari aplikasi.
@@ -95,6 +126,10 @@ export const useAuth = () => {
     loginMutation.mutate(credentials);
   const logout = () => logoutMutation.mutate();
 
+  const register = (credentials: RegisterRequest) => {
+    registerMutation.mutate(credentials);
+  };
+
   // Mengecek apakah user terverifikasi (punya data user di memori DAN token di storage)
   const isAuthenticated = !!user && !!tokenService.getToken();
 
@@ -106,5 +141,7 @@ export const useAuth = () => {
     logout, // Fungsi untuk dipanggil saat tombol logout diklik
     isLoggingIn: loginMutation.isPending, // Digunakan untuk menampilkan loading spinner pada tombol
     isLoggingOut: logoutMutation.isPending, // Digunakan untuk status loading saat keluar
+    register, // Fungsi untuk dipanggil saat tombol register diklik
+    isRegistering: registerMutation.isPending, // Digunakan untuk status loading saat registrasi
   };
 };

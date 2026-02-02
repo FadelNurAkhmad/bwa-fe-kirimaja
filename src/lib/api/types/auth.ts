@@ -23,18 +23,18 @@ export interface User {
   updated_at: string;
 }
 
-export interface AuthLoginResponse {
-  message: string;
-  data: {
-    access_token: string;
-    user: User;
-  };
-}
+// export interface AuthLoginResponse {
+//   message: string;
+//   data: {
+//     access_token: string;
+//     user: User;
+//   };
+// }
 
-export interface AuthRegisterResponse {
-  message: string;
-  data?: null;
-}
+// export interface AuthRegisterResponse {
+//   message: string;
+//   data?: null;
+// }
 
 // Legacy types for backward compatibility (keeping old structure for compatibility)
 export interface LoginRequest {

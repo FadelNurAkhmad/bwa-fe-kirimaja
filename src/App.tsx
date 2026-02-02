@@ -47,7 +47,14 @@ function App() {
           </AuthGuard>
         }
       />
-      <Route path="/auth/register" element={<RegisterPage />} />
+      <Route
+        path="/auth/register"
+        element={
+          <AuthGuard requireAuth={false}>
+            <RegisterPage />
+          </AuthGuard>
+        }
+      />
 
       {/* Legacy auth routes - redirect for compatibility */}
       {/* <Route path="/login" element={<LoginPage />} />
