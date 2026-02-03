@@ -73,13 +73,36 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
 
         {/* Branch Management */}
-        <Route path="/branch" element={<BranchPage />} />
+        <Route
+          path="/branch"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="branches.read"
+              children={<BranchPage />}
+            />
+          }
+        />
 
         {/* Role Management */}
-        <Route path="/role" element={<RolePage />} />
+        <Route
+          path="/role"
+          element={
+            <AuthGuard permission="permissions.read" children={<RolePage />} />
+          }
+        />
 
         {/* Employee Management */}
-        <Route path="/employee" element={<EmployeePage />} />
+        <Route
+          path="/employee"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="employee.read"
+              children={<EmployeePage />}
+            />
+          }
+        />
 
         {/* User Address Management */}
         <Route path="/user-addresses" element={<UserAddressesPage />} />
@@ -90,27 +113,105 @@ function App() {
         />
 
         {/* Delivery Management */}
-        <Route path="/delivery" element={<DeliveryPage />} />
+        <Route
+          path="/delivery"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="delivery.read"
+              children={<DeliveryPage />}
+            />
+          }
+        />
 
         {/* Package Sending */}
-        <Route path="/send-package" element={<SendPackagePage />} />
-        <Route path="/send-package/no-address" element={<NoAddressPage />} />
-        <Route path="/send-package/add" element={<AddSendPackagePage />} />
+        <Route
+          path="/send-package"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="shipments.create"
+              children={<SendPackagePage />}
+            />
+          }
+        />
+        <Route
+          path="/send-package/no-address"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="shipments.create"
+              children={<NoAddressPage />}
+            />
+          }
+        />
+        <Route
+          path="/send-package/add"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="shipments.create"
+              children={<AddSendPackagePage />}
+            />
+          }
+        />
         <Route
           path="/send-package/detail/:id"
-          element={<DetailSendPackagePage />}
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="shipments.read"
+              children={<DetailSendPackagePage />}
+            />
+          }
         />
-        <Route path="/send-package/pay/:id" element={<PaySendPackagePage />} />
+        <Route
+          path="/send-package/pay/:id"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="shipments.read"
+              children={<PaySendPackagePage />}
+            />
+          }
+        />
 
         {/* History Management */}
-        <Route path="/history" element={<HistoryPage />} />
-        <Route path="/history/detail/:id" element={<DetailHistoryPage />} />
+        <Route
+          path="/history"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="history.read"
+              children={<HistoryPage />}
+            />
+          }
+        />
+        <Route
+          path="/history/detail/:id"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="history.read"
+              children={<DetailHistoryPage />}
+            />
+          }
+        />
 
         {/* Package Tracking */}
         <Route path="/track-package" element={<TrackPackagePage />} />
 
         {/* Shipment Branch */}
-        <Route path="/shipment-branch" element={<ShipmentBranchPage />} />
+        <Route
+          path="/shipment-branch"
+          element={
+            <AuthGuard
+              requireAuth={true}
+              permission="shipment-branch.input"
+              children={<ShipmentBranchPage />}
+            />
+          }
+        />
       </Route>
     </Routes>
   );
