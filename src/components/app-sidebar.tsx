@@ -37,6 +37,7 @@ import { Link, useLocation } from "react-router";
 import { ChevronDown } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { PermissionGuard } from "./permission-guard";
+import { ProCard } from "./pro-card";
 
 /**
  * Definisi tipe data untuk satu item menu di sidebar.
@@ -276,6 +277,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </Collapsible>
           );
         })}
+        <ProCard />
       </SidebarContent>
     </Sidebar>
   );

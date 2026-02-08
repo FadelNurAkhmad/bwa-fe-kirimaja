@@ -1,4 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "./use-auth"; // Mengimpor data autentikasi untuk mendapatkan info user yang sedang login
+import { permissionService } from "@/lib/api/services/permission";
 
 /**
  * Hook kustom untuk mengelola logika pengecekan izin akses (RBAC - Role Based Access Control)
@@ -52,4 +54,14 @@ export const usePermission = () => {
     hasAnyPermission,
     hasAllPermissions,
   };
+};
+
+export const usePermissionApi = () => {
+  return useQuery({
+    queryKey: ["permissions"],
+    queryFn: permissionService.getPermissions,
+    staleTime: 10 * 60 * 1000, // 10 minutes, as permissions rarely change
+  });
+
+  // staleTime, React Query tidak akan memicu pengambilan data ulang (re-fetch) dari server meskipun komponen di-mount ulang atau jendela browser kembali difokuskan.
 };
