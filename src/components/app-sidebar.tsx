@@ -38,37 +38,34 @@ import { ChevronDown } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { PermissionGuard } from "./permission-guard";
 
+/**
+ * Definisi tipe data untuk satu item menu di sidebar.
+ */
 type MenuItem = {
-  title: string;
-  url: string;
-  icon: any;
-  permission?: string; // Optional permission key
+  title: string; // Nama yang akan tampil di menu
+  url: string; // Alamat tujuan (link)
+  icon: any; // Ikon yang akan ditampilkan
+  permission?: string; // (Opsional) Kunci hak akses yang dibutuhkan untuk melihat menu ini
 };
 
+/**
+ * Struktur data statis untuk menu navigasi.
+ * Terbagi menjadi navMain (menu umum) dan masterSidebar (menu administratif).
+ */
 const data = {
   versions: [],
   navMain: [
     {
       title: "Main Menu",
       items: [
-        {
-          title: "Dashboard",
-          url: "/dashboard",
-          icon: Chart2,
-          // Dashboard is accessible to all authenticated users
-        },
+        { title: "Dashboard", url: "/dashboard", icon: Chart2 }, // Tanpa permission: Bisa dilihat semua user
         {
           title: "Kirim Paket",
           url: "/send-package",
           icon: BoxTick,
           permission: "shipments.create",
         },
-        {
-          title: "Lacak Paket",
-          url: "/track-package",
-          icon: Routing,
-          // Track package is accessible to all authenticated users
-        },
+        { title: "Lacak Paket", url: "/track-package", icon: Routing },
         {
           title: "Datar Pengiriman",
           url: "/delivery",
@@ -85,21 +82,10 @@ const data = {
           title: "History",
           url: "/history",
           icon: ClipboardClose,
-          // History is accessible to all authenticated users
           permission: "history.read",
         },
-        {
-          title: "Alamat Saya",
-          url: "/user-addresses",
-          icon: Location,
-          // User addresses is accessible to all authenticated users
-        },
-        {
-          title: "Profile",
-          url: "/profile",
-          icon: User,
-          // Profile is accessible to all authenticated users
-        },
+        { title: "Alamat Saya", url: "/user-addresses", icon: Location },
+        { title: "Profile", url: "/profile", icon: User },
       ],
     },
   ],
@@ -131,8 +117,13 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const location = useLocation();
-  const { hasPermission } = usePermission(); // Use the custom hook to check permissions
+  const location = useLocation(); // Mengambil lokasi URL saat ini
+  const { hasPermission } = usePermission(); // Hook kustom untuk mengecek apakah user punya hak akses tertentu
+
+  /**
+   * Fungsi untuk mengecek apakah menu tersebut sedang aktif (diklik).
+   * Mengembalikan true jika pathname saat ini cocok dengan URL menu.
+   */
   const isActive = (url: string) => {
     if (location.pathname.startsWith(url)) {
       if (url === "/") {
@@ -144,21 +135,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   /**
-   * Pengecekan apakah user memiliki akses ke salah satu item dalam grup menu utama
-   *
+   * Mengecek apakah grup "Master Menu" boleh ditampilkan.
+   * Jika user tidak punya akses ke SATUPUN item di dalamnya, maka seluruh grup disembunyikan.
    */
   const hasAccessToMasterMenu = (items: MenuItem[]) => {
     return items.some((item) => {
       if (item.permission) {
         return hasPermission(item.permission);
       }
-      return true;
+      return true; // Jika menu tidak butuh permission, dianggap punya akses
     });
   };
 
   /**
-   * Render item menu biasa (tanpa sub-menu)
-   *
+   * Fungsi untuk me-render komponen UI menu standar.
+   * Jika menu memiliki 'permission', menu dibungkus dengan <PermissionGuard>.
    */
   const renderMenuItem = (item: MenuItem) => {
     const content = (
@@ -180,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarMenuItem>
     );
 
-    // Jika ada permission, bungkus dengan PermissionGuard
+    // Filter akses: Hanya tampil jika user memenuhi syarat permission
     if (item.permission) {
       return (
         <PermissionGuard key={item.title} permission={item.permission}>
@@ -193,8 +184,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   /**
-   * Render item untuk Master Menu (biasanya dengan sub-menu)
-   *
+   * Fungsi render khusus untuk item yang berada di dalam sub-menu (Master Menu).
+   * Memiliki ukuran ikon yang sedikit berbeda (lebih kecil).
    */
   const renderMasterMenuItem = (item: MenuItem) => {
     const content = (
@@ -229,7 +220,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      {/* Header Sidebar */}
+      {/* HEADER: Menampilkan Logo dan Nama Aplikasi */}
       <SidebarHeader>
         <div className="flex items-center">
           <TruckFast
@@ -244,7 +235,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent className="p-6 pt-0">
-        {/* Navigasi Utama */}
+        {/* LOOPING MENU UTAMA: Dashboard, Kirim Paket, dll. */}
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title}>
             <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
@@ -254,11 +245,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         ))}
 
-        {/* Master Sidebar dengan Collapsible */}
+        {/* LOOPING MENU MASTER: Hanya tampil jika user punya akses ke menu administratif (Cabang, Karyawan, dll) */}
         {data.masterSidebar.map((masterGroup) => {
-          // Hanya render jika user punya akses ke salah satu item
           if (!hasAccessToMasterMenu(masterGroup.items)) {
-            return null;
+            return null; // Sembunyikan seluruh grup jika tidak ada akses sama sekali
           }
 
           return (
@@ -268,8 +258,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="group/collapsible"
             >
               <SidebarGroup>
+                {/* Trigger untuk buka-tutup (accordion) menu Master */}
                 <SidebarGroupLabel asChild>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full cursor-pointer h-12 text-sm font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                  <CollapsibleTrigger className="...">
                     {masterGroup.title}
                     <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
                   </CollapsibleTrigger>

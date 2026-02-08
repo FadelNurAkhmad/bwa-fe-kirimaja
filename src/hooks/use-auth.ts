@@ -28,6 +28,14 @@ export const useAuth = () => {
     gcTime: 10 * 60 * 1000, // Data dihapus dari memori jika tidak dipakai selama 10 menit
   });
 
+  // Debugging yang lebih akurat
+  console.log("Full User Object:", user);
+  console.log("Permissions Array:", user?.role?.permissions ?? "NOT FOUND");
+
+  // console.log("USER:", user);
+  // console.log("ROLE:", user?.role);
+  // console.log("PERMISSIONS:", user?.role?.permissions);
+
   /**
    * 2. LOGIN MUTATION
    * Fungsi: Menangani proses pengiriman data login ke server.

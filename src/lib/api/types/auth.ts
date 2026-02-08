@@ -63,7 +63,7 @@ export interface LoginResponse {
       id: number;
       name: string;
       key: string;
-      permissions?: Permission[];
+      permissions: Permission[];
     };
   };
 }

@@ -88,7 +88,11 @@ function App() {
         <Route
           path="/role"
           element={
-            <AuthGuard permission="permissions.read" children={<RolePage />} />
+            <AuthGuard
+              requireAuth={true}
+              permission="permissions.read"
+              children={<RolePage />}
+            />
           }
         />
 

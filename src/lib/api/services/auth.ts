@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { handleAxiosError } from "@/lib/utils/error-handler";
 import { apiClient } from "../axios";
 import type { LoginRequest, LoginResponse, RegisterRequest } from "../types";
@@ -24,18 +25,37 @@ export const authService = {
   },
 
   // Mengambil data user yang sedang login dari storage
+  // async getCurrentUser(): Promise<LoginResponse["user"]> {
+  //   const token = localStorage.getItem("access_token");
+  //   if (!token) {
+  //     throw new Error("User not authenticated");
+  //   }
+
+  //   const user = localStorage.getItem("user");
+  //   if (!user) {
+  //     throw new Error("User not found");
+  //   }
+
+  //   return JSON.parse(user);
+  // },
+
   async getCurrentUser(): Promise<LoginResponse["user"]> {
     const token = localStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("User not authenticated");
-    }
+    if (!token) throw new Error("No token found");
 
-    const user = localStorage.getItem("user");
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const userData = localStorage.getItem("user");
+    if (!userData) throw new Error("No user data found");
 
-    return JSON.parse(user);
+    try {
+      const parsedUser = JSON.parse(userData);
+      // Validasi tambahan untuk memastikan role ada
+      if (!parsedUser.role) {
+        console.warn("Role data is missing in stored user object");
+      }
+      return parsedUser;
+    } catch (e) {
+      throw new Error("Failed to parse user data");
+    }
   },
 
   async register(request: RegisterRequest): Promise<LoginResponse> {
