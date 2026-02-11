@@ -33,7 +33,7 @@ import {
   createEmployeeSchema,
   type CreateEmployeeFormData,
 } from "@/lib/validations/employee";
-import { useCreateEmployee } from "@/hooks/use-employee";
+import { useCreateEmployee, useEmployees } from "@/hooks/use-employee";
 import { useBranches } from "@/hooks/use-branch";
 import { useAuth } from "@/hooks/use-auth";
 import { UserRole } from "@/lib/api/types/employee";
@@ -48,55 +48,64 @@ export function AddEmployeeModal({ onEmployeeAdded }: AddEmployeeModalProps) {
 
   const createEmployeeMutation = useCreateEmployee();
   const { user } = useAuth();
-  const { data: branches = [], isLoading: isLoadingBranches } = useBranches();
+  // 1. Tentukan apakah user adalah Admin Branch
+  const isAdminBranch = user?.role?.key === "admin-branch";
 
+  // 2. Ambil data pendukung
+  const { data: employees = [] } = useEmployees();
+  const { data: branches = [], isLoading: isLoadingBranches } = useBranches({
+    enabled: !isAdminBranch, // Hanya fetch branch jika bukan admin branch
+  });
+
+  // 3. Cari branch_id milik admin yang sedang login
+  const adminEmployee = isAdminBranch
+    ? employees.find((employee) => employee.user.id === user?.id)
+    : null;
+
+  const defaultBranchId = adminEmployee?.branch_id;
+
+  // 4. Inisialisasi Form dengan Default Values
   const form = useForm<CreateEmployeeFormData>({
     resolver: zodResolver(createEmployeeSchema),
     defaultValues: {
       email: "",
       name: "",
       phone_number: "",
-      type: undefined,
-      branch_id: undefined,
+      // Jika admin branch, paksa type ke 'courier'
+      type: isAdminBranch ? "courier" : "admin",
+      branch_id: defaultBranchId || 0, // Set ke 0 awalnya jika belum ketemu
+      role_id: isAdminBranch ? UserRole.COURIER : UserRole.ADMIN_BRANCH,
       password: "",
     },
   });
 
-  // Efek untuk auto-fill branch berdasarkan lokasi user saat ini jika user adalah admin_branch
+  // 5. Effect untuk sinkronisasi branch_id jika adminEmployee baru ter-load
   useEffect(() => {
-    if (user?.role?.key === "admin_branch" && branches.length > 0) {
-      // Find the branch that matches the user's branch
-      const userBranch = branches.find(
-        (branch) =>
-          branch.name.toLowerCase().includes(user.name?.toLowerCase() || "") ||
-          branch.address
-            ?.toLowerCase()
-            .includes(user.name?.toLowerCase() || ""),
-      );
-
-      if (userBranch) {
-        form.setValue("branch_id", userBranch.id);
-        form.setValue("type", "courier");
-        form.setValue("role_id", UserRole.COURIER);
-      }
+    if (
+      isAdminBranch &&
+      defaultBranchId &&
+      defaultBranchId !== form.getValues("branch_id")
+    ) {
+      form.setValue("branch_id", defaultBranchId);
     }
-  }, [user, branches, form]);
+  }, [isAdminBranch, defaultBranchId, form]);
 
-  // Update role_id otomatis ketika tipe karyawan berubah
+  // 6. Effect untuk update role_id secara otomatis saat 'type' berubah (untuk Super Admin)
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === "type" && value.type) {
-        const roleId =
-          value.type === "courier" ? UserRole.COURIER : UserRole.ADMIN_BRANCH;
-        form.setValue("role_id", roleId);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
+    if (!isAdminBranch) {
+      const subscription = form.watch((value, { name }) => {
+        if (name === "type" && value.type) {
+          const roleId =
+            value.type === "courier" ? UserRole.COURIER : UserRole.ADMIN_BRANCH;
+          form.setValue("role_id", roleId);
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [form, isAdminBranch]);
 
   async function onSubmit(_values: CreateEmployeeFormData) {
     try {
-      setIsLoading(true);
       await createEmployeeMutation.mutateAsync(_values);
       setIsOpen(false);
       form.reset();
@@ -183,7 +192,11 @@ export function AddEmployeeModal({ onEmployeeAdded }: AddEmployeeModalProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipe Karyawan</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isAdminBranch}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih tipe karyawan" />
@@ -191,41 +204,8 @@ export function AddEmployeeModal({ onEmployeeAdded }: AddEmployeeModalProps) {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="courier">Kurir</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="branch_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cabang</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ? field.value.toString() : undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih cabang" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {isLoadingBranches ? (
-                        <SelectItem value="">Memuat cabang...</SelectItem>
-                      ) : (
-                        branches.map((branch) => (
-                          <SelectItem
-                            key={branch.id}
-                            value={branch.id.toString()}
-                          >
-                            {branch.name}
-                          </SelectItem>
-                        ))
+                      {!isAdminBranch && (
+                        <SelectItem value="admin">Admin</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -233,6 +213,43 @@ export function AddEmployeeModal({ onEmployeeAdded }: AddEmployeeModalProps) {
                 </FormItem>
               )}
             />
+
+            {!isAdminBranch && (
+              <FormField
+                control={form.control}
+                name="branch_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cabang</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value ? field.value.toString() : undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih cabang" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isLoadingBranches ? (
+                          <SelectItem value="">Memuat cabang...</SelectItem>
+                        ) : (
+                          branches.map((branch) => (
+                            <SelectItem
+                              key={branch.id}
+                              value={branch.id.toString()}
+                            >
+                              {branch.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

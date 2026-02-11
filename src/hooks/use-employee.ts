@@ -16,11 +16,12 @@ export const employeeKeys = {
 };
 
 // Get all employees
-export const useEmployees = () => {
+export const useEmployees = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: employeeKeys.lists(),
     queryFn: employeeService.getAll,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: options?.enabled ?? true,
   });
 };
 

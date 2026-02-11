@@ -16,11 +16,12 @@ export const branchKeys = {
 // queryKey adalah cara React Query mengetahui apa data tersebut, di mana menyimpannya, dan kapan harus memperbaruinya berdasarkan interaksi user atau perubahan variabel.
 
 // Get all branches
-export const useBranches = () => {
+export const useBranches = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: branchKeys.lists(),
     queryFn: branchService.getAll,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: options?.enabled ?? true, // Secara default, query akan aktif. Jika options.enabled diset ke false, maka query tidak akan dijalankan secara otomatis.
   });
 };
 
