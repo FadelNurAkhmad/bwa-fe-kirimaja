@@ -2,31 +2,35 @@ import type { User } from "./auth";
 
 // Legacy User interface for backward compatibility
 export interface LegacyUser {
-	id: number;
-	name: string;
-	email: string;
-	avatar: string;
-	phone_number: string;
-	role: {
-		id: number;
-		name: string;
-		key: string;
-	};
+  id: number;
+  name: string;
+  email: string;
+  avatar: string;
+  phone_number: string;
+  role: {
+    id: number;
+    name: string;
+    key: string;
+  };
 }
 
 export interface ProfileResponse {
-	message: string;
-	data: User;
+  message: string;
+  data: User;
 }
 
 export interface UpdateProfileRequest {
-	name?: string;
-	phone_number?: string;
-	avatar?: string; // binary format in multipart
+  name?: string;
+  phone_number?: string;
+  password?: string;
 }
 
-export interface UpdateProfileResponse {
-	data: LegacyUser;
-	message: string;
-	success: boolean;
+// export interface UpdateProfileResponse {
+// 	data: LegacyUser;
+// 	message: string;
+// 	success: boolean;
+// }
+
+export interface UpdateProfileWithAvatarRequest extends UpdateProfileRequest {
+  avatar?: File; // binary format in multipart
 }

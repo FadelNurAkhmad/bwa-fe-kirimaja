@@ -1,5 +1,5 @@
 import { Separator } from "@radix-ui/react-separator";
-import { Outlet } from "react-router";
+import { Link, Outlet } from "react-router";
 import { AppSidebar } from "../app-sidebar";
 import {
   DropdownMenu,
@@ -61,7 +61,11 @@ export default function AuthenticatedLayout() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/profile" className="flex items-center">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout} disabled={isLoggingOut}>
                     {isLoggingOut ? "Logging out..." : "Log Out"}
                   </DropdownMenuItem>
