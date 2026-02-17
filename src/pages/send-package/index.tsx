@@ -23,16 +23,16 @@ export default function SendPackagePage() {
       shipment.tracking_number
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      shipment.shipment_detail?.package_type
+      shipment.shipment_details?.package_type
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
       shipment.pickup_address?.address
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      shipment.shipment_detail?.destination_address
+      shipment.shipment_details?.destination_address
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
-      shipment.shipment_detail?.recipient_name
+      shipment.shipment_details?.recipient_name
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase()),
   );

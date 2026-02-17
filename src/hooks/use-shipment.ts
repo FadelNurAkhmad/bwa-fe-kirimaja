@@ -46,3 +46,40 @@ export const useCreateShipment = () => {
     },
   });
 };
+
+export const useDownloadPdf = () => {
+  return useMutation({
+    mutationFn: (id: number) => shipmentService.downloadPdf(id),
+    onSuccess: (blob) => {
+      // Membuat URL sementara dari data Blob
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `shipment-${Date.now()}.pdf`;
+
+      // Menambahkan elemen ke DOM secara sementara untuk memicu klik
+      document.body.appendChild(link);
+      link.click();
+
+      // Bersihkan elemen dan URL setelah digunakan
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("PDF berhasil diunduh");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+};
+
+export const useTrackShipment = () => {
+  return useMutation({
+    mutationFn: (trackingNumber: string) =>
+      shipmentService.trackByNumber(trackingNumber),
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+};
